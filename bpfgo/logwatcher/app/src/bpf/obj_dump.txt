@@ -1,0 +1,162 @@
+
+logwatcher.bpf.o:	file format elf64-bpf
+
+Disassembly of section .text:
+
+0000000000000000 <strncmp_>:
+; int strncmp_(const char *s1, const char *s2, size_t count) {
+       0:	r0 = 0
+;   while (i < count) {
+       1:	if r3 == 0 goto +16 <LBB1_6>
+       2:	r4 = 0
+       3:	goto +3 <LBB1_3>
+
+0000000000000020 <LBB1_2>:
+       4:	r4 += 1
+       5:	r0 = 0
+;   while (i < count) {
+       6:	if r4 >= r3 goto +11 <LBB1_6>
+
+0000000000000038 <LBB1_3>:
+;     char ch1 = *(s1 + i);
+       7:	r5 = r1
+       8:	r5 += r4
+       9:	r0 = 4294967295 ll
+      11:	r5 = *(u8 *)(r5 + 0)
+;     if (ch1 != 0 && ch2 != 0) {
+      12:	if r5 == 0 goto +5 <LBB1_6>
+;     char ch2 = *(s2 + i);
+      13:	r6 = r2
+      14:	r6 += r4
+;     if (ch1 != 0 && ch2 != 0) {
+      15:	r6 = *(u8 *)(r6 + 0)
+      16:	if r6 == 0 goto +1 <LBB1_6>
+      17:	if r5 == r6 goto -14 <LBB1_2>
+
+0000000000000090 <LBB1_6>:
+; }
+      18:	exit
+
+0000000000000098 <strlen_>:
+; size_t strlen_(const char *s) {
+      19:	r0 = 0
+
+00000000000000a0 <LBB2_1>:
+;   for (sc = s; *sc != '\0'; ++sc)
+      20:	r2 = r1
+      21:	r2 += r0
+      22:	r0 += 1
+      23:	r2 = *(u8 *)(r2 + 0)
+      24:	if r2 != 0 goto -5 <LBB2_1>
+;   return sc - s;
+      25:	r0 += -1
+      26:	exit
+
+Disassembly of section tracepoint/syscalls/sys_enter_openat:
+
+0000000000000000 <syscall_enter_open>:
+; }
+       0:	r0 = 0
+       1:	exit
+
+Disassembly of section tracepoint/syscalls/sys_exit_openat:
+
+0000000000000000 <syscall_exit_open>:
+; int syscall_exit_open(struct syscall_exit_openat_args_t *args) {
+       0:	r6 = r1
+;   pid_tgid = bpf_get_current_pid_tgid();
+       1:	call 14
+       2:	*(u64 *)(r10 - 8) = r0
+       3:	r2 = r10
+       4:	r2 += -8
+;   void *lookup_ret = bpf_map_lookup_elem(&ctx_syscall_open, &pid_tgid);
+       5:	r1 = 0 ll
+       7:	call 1
+       8:	r1 = 0
+;   if (lookup_ret == NULL) {
+       9:	if r0 == 0 goto +24 <LBB3_4>
+;   if (args->ret > 0) {
+      10:	r1 = *(u64 *)(r6 + 16)
+      11:	r2 = 1
+      12:	if r2 s> r1 goto +15 <LBB3_3>
+;     pf.fd = args->ret;
+      13:	*(u64 *)(r10 - 16) = r1
+;     pf.pid = pid_tgid;
+      14:	r1 = *(u64 *)(r10 - 8)
+      15:	*(u64 *)(r10 - 24) = r1
+      16:	r2 = r10
+;     pf.fd = args->ret;
+      17:	r2 += -24
+;         bpf_map_update_elem(&fd_to_path_for_pid, &pf, lookup_ret, BPF_ANY);
+      18:	r1 = 0 ll
+      20:	r3 = r0
+      21:	r4 = 0
+      22:	call 2
+      23:	r1 = r0
+      24:	r2 = r1
+      25:	r2 <<= 32
+      26:	r2 >>= 32
+      27:	if r2 != 0 goto +6 <LBB3_4>
+
+00000000000000e0 <LBB3_3>:
+      28:	r2 = r10
+      29:	r2 += -8
+;   return bpf_map_delete_elem(&ctx_syscall_open, &pid_tgid);
+      30:	r1 = 0 ll
+      32:	call 3
+      33:	r1 = r0
+
+0000000000000110 <LBB3_4>:
+; }
+      34:	r0 = r1
+      35:	exit
+
+Disassembly of section tracepoint/syscalls/sys_enter_write:
+
+0000000000000000 <syscall_enter_write>:
+; int syscall_enter_write(struct syscall_enter_write_args_t *args) {
+       0:	r6 = r1
+;   pid_tgid = bpf_get_current_pid_tgid();
+       1:	call 14
+;   pf.pid = pid_tgid;
+       2:	*(u64 *)(r10 - 16) = r0
+;   pf.fd = args->fd;
+       3:	r1 = *(u32 *)(r6 + 16)
+       4:	*(u64 *)(r10 - 8) = r1
+       5:	r2 = r10
+       6:	r2 += -16
+;   void *lookup_ret = bpf_map_lookup_elem(&fd_to_path_for_pid, &pf);
+       7:	r1 = 0 ll
+       9:	call 1
+      10:	r1 = r0
+      11:	r0 = 4294967295 ll
+;   if (path == NULL) {
+      13:	if r1 == 0 goto +5 <LBB4_2>
+;   bpf_printk("called...");
+      14:	r1 = 0 ll
+      16:	r2 = 10
+      17:	call 6
+      18:	r0 = 0
+
+0000000000000098 <LBB4_2>:
+; }
+      19:	exit
+
+Disassembly of section tracepoint/syscalls/sys_enter_close:
+
+0000000000000000 <syscall_enter_close>:
+; int syscall_enter_close(struct syscall_enter_close_args_t *args) {
+       0:	r6 = r1
+;   pid_tgid = bpf_get_current_pid_tgid();
+       1:	call 14
+;   pf.pid = pid_tgid;
+       2:	*(u64 *)(r10 - 16) = r0
+;   pf.fd = args->fd;
+       3:	r1 = *(u32 *)(r6 + 16)
+       4:	*(u64 *)(r10 - 8) = r1
+       5:	r2 = r10
+       6:	r2 += -16
+;   return bpf_map_delete_elem(&fd_to_path_for_pid, &pf);
+       7:	r1 = 0 ll
+       9:	call 3
+      10:	exit

@@ -1,0 +1,38 @@
+
+
+tracepoint:syscalls:sys_enter_openat
+/ strncmp("/home/vimalkum/src/ebpf/learnbpf/bpftrace/first", str(args->filename), 47) == 0 /
+{
+  //printf("file opened %s\n", str(args->filename));
+  @ctx_open[pid] = str(args->filename)
+}
+
+tracepoint:syscalls:sys_exit_openat
+/ @ctx_open[pid] != "" /
+{
+  printf("for pid: %d returning fd %d for filepath: %s\n",pid,args->ret,@ctx_open[pid]);
+  if (args->ret > 0) 
+  {
+    @fd_to_path_for_pid[pid,args->ret] = @ctx_open[pid];
+  }
+  delete(@ctx_open[pid]);
+}
+
+tracepoint:syscalls:sys_enter_write
+/ @fd_to_path_for_pid[pid,args->fd] != "" /
+{
+  printf("file being written to. file: %s, bytes: %d \n",@fd_to_path_for_pid[pid,args->fd],args->count);
+}
+
+tracepoint:syscalls:sys_enter_close
+/ @fd_to_path_for_pid[pid,args->fd] != "" /
+{
+  printf("closing file: %s\n",@fd_to_path_for_pid[pid,args->fd]);
+  delete(@fd_to_path_for_pid[pid,args->fd])
+}
+
+tracepoint:syscalls:sys_enter_exit_group
+/ @fd_to_path_for_pid[pid,0] != "" /
+{
+  printf("");
+}
